@@ -29,7 +29,6 @@ endif()
 # Options
 option(BUILD_TESTS "Build unit tests" ON)
 option(BUILD_EXAMPLES "Build example programs" ON)
-option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 
 # Tests
 if(BUILD_TESTS)
