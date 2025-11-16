@@ -41,8 +41,3 @@ endif()
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
-
-# Benchmarks
-if(BUILD_BENCHMARKS)
-    add_subdirectory(benchmarks)
-endif()
