@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-linux:
+    name: Build and Test (Linux)
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        compiler:
+          - { cc: gcc-11, cxx: g++-11 }
+          - { cc: gcc-12, cxx: g++-12 }
+          - { cc: clang-14, cxx: clang++-14 }
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build ${{ matrix.compiler.cxx }}
+
+    - name: Configure CMake
+      env:
+        CC: ${{ matrix.compiler.cc }}
+        CXX: ${{ matrix.compiler.cxx }}
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_TESTS=ON \
+          -DBUILD_EXAMPLES=ON
+
+    - name: Build
+      run: cmake --build build
+
+    - name: Run tests
+      working-directory: build
+      run: ctest --output-on-failure --verbose
+
+    - name: Run examples
+      working-directory: build
+      run: |
+        ./examples/basic_usage
+        ./examples/filtering
+        ./examples/particle_analysis
+
+  build-macos:
+    name: Build and Test (macOS)
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: brew install cmake ninja
+
+    - name: Configure CMake
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_TESTS=ON \
+          -DBUILD_EXAMPLES=ON
+
+    - name: Build
+      run: cmake --build build
+
+    - name: Run tests
+      working-directory: build
+      run: ctest --output-on-failure --verbose
+
+    - name: Run examples
+      working-directory: build
+      run: |
+        ./examples/basic_usage
+        ./examples/filtering
+        ./examples/particle_analysis
+
+  build-windows:
+    name: Build and Test (Windows)
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure CMake
+      run: |
+        cmake -B build -G "Visual Studio 17 2022" `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DBUILD_TESTS=ON `
+          -DBUILD_EXAMPLES=ON
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Run tests
+      working-directory: build
+      run: ctest -C Release --output-on-failure --verbose
+
+    - name: Run examples
+      working-directory: build/examples/Release
+      run: |
+        ./basic_usage.exe
+        ./filtering.exe
+        ./particle_analysis.exe
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install clang-format
+      run: sudo apt-get install -y clang-format-14
+
+    - name: Check formatting
+      run: |
+        find include tests examples -name "*.cpp" -o -name "*.h" | \
+        xargs clang-format-14 --dry-run --Werror

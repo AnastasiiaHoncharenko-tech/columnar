@@ -1,4 +1,4 @@
-# ---> CMake
+# CMake
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -12,7 +12,7 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 
-# ---> C++
+# C++
 # Prerequisites
 *.d
 
